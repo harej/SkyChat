@@ -27,14 +27,3 @@
 * File transfer
 * Emojis
 * Reaction to content (using emojis)
-
-
-# Demo
-Demo [here](https://skymessage-dac.hns.siasky.net/)
-
-
-# License
-MIT
-
-
-

@@ -4,6 +4,15 @@
 # Inner Workings
  SkyChat is using skynet, ...
  
+# How to use
+ Because SkyChat uses skynet as its backend, and skynet has its own login solution (MySky) u will need to setup your MySky account.
+ 
+ * MySky: https://skyprofile.hns.siasky.net/
+ 
+ Now when you open SkyChat you will be automatically loggen in.
+ 
+ * SkyChat: https://skymessage-dac.hns.siasky.net/
+ 
 # Important
  All data on SkyChat is public, meaning if a user is dedicated enough he can by modifiying the client get access to all the data, but that shouldn't be a problem on already public servers (note: message encryption is in works so private servers and dm's will be safe).
  

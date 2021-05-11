@@ -5,7 +5,7 @@
  SkyChat is using skynet, ...
  
 # Important
- All data on SkyChat is public, if a user is dedicated enough he can by modifiying the client get access to all the data, but that shouldn't be a problemt o already pubic servers.
+ All data on SkyChat is public, if a user is dedicated enough he can by modifiying the client get access to all the data, but that shouldn't be a problem to already pubic servers.
  At the momement skynet is very slow and the messages can take up to 20 seconds (averaging 8 seconds) to send, this will improve with developers optimazing skynet.
 
 # Features

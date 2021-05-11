@@ -6,7 +6,7 @@
 # How does it work
  SkyChat is using Skynet, ...
  
-# How to use
+# How it works
  Because SkyChat uses Skynet as its backend, and Skynet has its own login solution (MySky) u will need to setup your MySky account.
  
  * MySky: https://skyprofile.hns.siasky.net/ (profile picture and username are required)

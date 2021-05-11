@@ -19,14 +19,14 @@
  At the moment Skynet is very slow, and the messages can take up to 20 seconds (averaging 8 seconds) to get sent (this will improve with developers optimizing Skynet).
 
 # Features
-* supports up to 1000 users in single server
-* clean UI
+* Supports up to 1000 users in single server
+* Clean UI
 
 
 # Planned features
-* file transfer
-* emojis
-* reaction to content (using emojis)
+* File transfer
+* Emojis
+* Reaction to content (using emojis)
 
 
 # Demo

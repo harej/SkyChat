@@ -3,7 +3,7 @@
  
  > With SkyChat you can make and join servers, add channels and talk there with up to 1000 users, sharing photos/videos or improving your messages with emojis :laughing:.
  
-# How does it work
+# Inner Workings
  SkyChat is using Skynet, ...
  
 # Using SkyChat

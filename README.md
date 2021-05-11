@@ -7,7 +7,7 @@
 # How to use
  Because SkyChat uses skynet as its backend, and skynet has its own login solution (MySky) u will need to setup your MySky account.
  
- * MySky: https://skyprofile.hns.siasky.net/ (profile picture, and username are required)
+ * MySky: https://skyprofile.hns.siasky.net/ (profile picture and username are required)
  
  Now when you open SkyChat you will be automatically loggen in.
  

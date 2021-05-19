@@ -267,6 +267,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.0.1"
+  markdown:
+    dependency: "direct main"
+    description:
+      name: markdown
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "4.0.0"
   matcher:
     dependency: transitive
     description:
@@ -394,7 +401,7 @@ packages:
       path: "../skynet"
       relative: true
     source: path
-    version: "3.1.0"
+    version: "4.0.0"
   source_maps:
     dependency: transitive
     description:

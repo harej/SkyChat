@@ -1,26 +1,36 @@
 import 'package:simple_observable/simple_observable.dart';
 import 'package:skynet/skynet.dart';
+import 'package:skynet/mysky.dart';
+import 'package:skynet/dacs.dart';
 
 class MySkyService {
+  SkynetClient skynetClient = SkynetClient();
+
   final mySky = MySky();
 
-  final profileDAC = ProfileDAC();
+  ProfileDAC profileDAC;
 
-  final feedDAC = FeedDAC();
+  FeedDAC feedDAC;
   // final socialDAC = SocialDAC();
 
   final isLoggedIn = Observable<bool>(initialValue: null);
 
   String userId;
-  final String dataDomain = 'skymessage-dac.hns';
+  final String dataDomain = 'chatbubble.hns';
   // final String dataDomain = 'localhost';
 
   Future<void> init() async {
-    print('init');
+    print('Using portal ${skynetClient.portalHost}');
+
     print('DATA_DOMAIN $dataDomain');
+
+    profileDAC = ProfileDAC(skynetClient);
+
+    feedDAC = FeedDAC(skynetClient);
+
     await mySky.load(
       dataDomain,
-      portal: 'https://${SkynetConfig.host}/',
+      skynetClient: skynetClient,
     );
 
     print('loaded MySky');

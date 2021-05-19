@@ -13,7 +13,7 @@
  
  Now when you open SkyChat you will be automatically loggen in.
  
- * SkyChat: https://skymessage-dac.hns.siasky.net/
+ * SkyChat: https://chatbubble.hns.siasky.net/
  
 # Important
  * All data on SkyChat is public, meaning if a user is dedicated enough he can modifiy the client get access to all the data, but that shouldn't be a problem on already public      server (note: message encryption is in works so private servers and dm's will be safe).

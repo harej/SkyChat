@@ -3,24 +3,23 @@ import 'dart:html';
 import 'dart:js';
 import 'package:collection/collection.dart';
 import 'package:intl/intl.dart';
+import 'package:markdown/markdown.dart' as md;
 
 import 'package:skychat/js.dart';
 import 'package:skychat/model/server.dart';
 import 'package:skychat/mysky.dart';
 import 'package:skynet/skynet.dart';
-import 'package:skynet/src/mysky/json.dart';
+import 'package:skynet/dacs.dart';
 import 'package:string_validator/string_validator.dart';
 
 final joinedServerIds = [
-  '5286f18e212944e7c8a1e7684c66f1a17afc29b4f903c1c5107f548526b70853'
+  'a8e04ee82f2120b90cb234df62bd3181517a201ef4944b03277b162cc16b3ce9'
 ];
 
 final servers = <String, Server>{};
 
 Server currentServerData;
 String currentChannelId;
-
-final ws = SkyDBoverWS();
 
 final mySky = MySkyService();
 
@@ -48,7 +47,7 @@ Future<void> sendMessage(String message) async {
   (querySelector('#msgField') as InputElement).disabled = true;
   final path = '${mySky.dataDomain}/${currentServerData?.id}/messages.json';
 
-  final res = await getJSONWithRevision(
+  final res = await mySky.skynetClient.file.getJSONWithRevision(
     mySky.userId,
     path,
   );
@@ -75,7 +74,7 @@ Future<void> sendMessage(String message) async {
     Post(
       content: PostContent(
         ext: {
-          "future.skychat.domain": {
+          "chatbubble.hns": {
             "userId": mySky.userId,
             "serverId": currentServerData.id,
             "channelName": currentChannelId,
@@ -120,15 +119,19 @@ Future<void> sendMessage(String message) async {
 
 SkynetUser publicUser;
 
+SkyDBoverWS ws;
+
+bool isRunningInIframe = false;
 void main() async {
+  isRunningInIframe = window.self != window.top;
+
   var host = window.location.hostname.split('.hns.').last;
 
   if (host == 'localhost' || host == '127.0.0.1') {
     host = 'siasky.net';
   }
 
-  SkynetConfig.host = host;
-  print('Using portal ${SkynetConfig.host}');
+  ws = SkyDBoverWS(mySky.skynetClient);
 
   ws.onConnectionStateChange = () {
     final cs = ws.connectionState;
@@ -228,9 +231,9 @@ void startSkyChat() async {
   await Future.wait(<Future>[
     for (final serverId in joinedServerIds)
       () async {
-        servers[serverId] =
-            Server.fromJson(await getJSON(serverId, 'index.json'))
-              ..id = serverId;
+        servers[serverId] = Server.fromJson(
+            await mySky.skynetClient.file.getJSON(serverId, 'index.json'))
+          ..id = serverId;
       }(),
   ]);
 
@@ -296,8 +299,8 @@ void subscribeToMemberList(String serverId, String ref) {
 void sendJoinRequest(String serverId) async {
   print('sendJoinRequest');
 
-  final path = 'future.skychat.domain/$serverId/join.request.json';
-  final res = await getJSONWithRevision(
+  final path = 'chatbubble.hns/$serverId/join.request.json';
+  final res = await mySky.skynetClient.file.getJSONWithRevision(
     publicUser.id,
     path,
   );
@@ -351,7 +354,7 @@ void subscribeToChannel(String serverId, String channelName, String ref) {
         final pagePath =
             path.replaceFirst('/index.json', '/page_$currPage.json');
 
-        final page = await getJSON(userId, pagePath);
+        final page = await mySky.skynetClient.file.getJSON(userId, pagePath);
 
         final self = page['_self'];
 
@@ -406,7 +409,7 @@ void RenderServers() {
   var finalHtml = '';
 
   servers.forEach((serverId, server) {
-    final serverIcon = resolveSkylink(server.icon);
+    final serverIcon = mySky.skynetClient.resolveSkylink(server.icon);
     var serverInitials = "";
 
     if (serverIcon == null) {
@@ -528,9 +531,9 @@ void RenderMemberList() {
 
   UI['aside']['membersList'].setInnerHtml(membersHtml);
 
-  for (final userId in members.keys) {
+/*   for (final userId in members.keys) {
     loadUserProfileAsync(userId);
-  }
+  } */
 }
 
 void loadUserProfileAsync(String userId) async {
@@ -601,60 +604,196 @@ void RenderMessages(String channelId) async {
   final scrollElem = UI['content']['chatWindow']['scrollElem'];
 
   scrollElem.scrollTop = scrollElem.scrollHeight - scrollElem.clientHeight;
+
+  if (isRunningInIframe) {
+    final title = '#$channelId - ${currentServerData?.name ?? ''}';
+    // print('isRunningInIframe -> set window title: ${title}');
+    window.parent.postMessage(
+      {
+        'skappy': true,
+        'action': 'setTitle',
+        'name': window.name,
+        'data': '${base64Url.encode(utf8.encode(title))}'
+      },
+      '*',
+    );
+  }
 }
 
 void insertMessage(Post post, [bool isDraft = false]) {
-  print('insertMessage');
-  final userId = post.content.ext['future.skychat.domain']['userId'];
-  final index = post.content.ext['future.skychat.domain']['i'];
-  final id = 'msg_${userId}_$index';
+  try {
+    print('insertMessage');
+    final userId = post.content.ext['chatbubble.hns']['userId'];
+    final index = post.content.ext['chatbubble.hns']['i'];
+    final id = 'msg_${userId}_$index';
 
-  final existingElement = document.getElementById(id);
+    final existingElement = document.getElementById(id);
 
-  if (existingElement != null) {
-    existingElement.remove();
+    if (existingElement != null) {
+      existingElement.remove();
+    }
+
+    final Element chatWindowElement = UI['content']['chatWindow']['elem'];
+    // TODO Show loading indicator if null
+
+    final baseElem = document.createElement("div");
+    if (isDraft) {
+      baseElem.style.opacity = '40%';
+    }
+    baseElem.setAttribute("id", id);
+    baseElem.classes.add("chatEntry");
+
+    final usernameField = document.createElement("span");
+    if (userId == null) {
+      usernameField.innerText = currentServerData?.name;
+
+      usernameField.style.color = '#00C65E';
+    } else {
+      usernameField.style.fontStyle = 'italic';
+      usernameField.innerText = 'Loading username...';
+      usernameField.classes.add('user-${userId}');
+      // userIdsToLoad.add(userId);
+
+    }
+
+    baseElem.append(usernameField);
+
+    if (post.ts != null) {
+      final dateTimeField = document.createElement('span');
+
+      dateTimeField.innerText =
+          ' ${DateFormat.Hm().format(DateTime.fromMillisecondsSinceEpoch(post.ts))}';
+
+      baseElem.append(dateTimeField);
+    }
+
+    String msgText = escape(post?.content?.text ?? '');
+
+    if (msgText.length > 3000) {
+      msgText = msgText.substring(0, 3000) +
+          '... [cut down from ${msgText.length} to 3000 characters by your client]';
+    }
+
+    msgText = msgText.replaceAllMapped(RegExp(r'(^| )[#@][^ ]+'), (match) {
+      final str = msgText.substring(match.start, match.end);
+
+      if (str.trimLeft().startsWith('@')) {
+        return '<a>$str</a>';
+      } else {
+        return '<a href="${str.trim()}">$str</a>';
+      }
+    });
+
+    /*   if (true) {
+      msgText = msgText.replaceAllMapped(RegExp(r' href="([^"]+)"'), (match) {
+        final str = match.group(1);
+    
+        return ' href="javascript:alert(\'${str}\')"';
+      });
+    } */
+
+    msgText = msgText.replaceAllMapped('sia://', (match) {
+      final str =
+          msgText.substring(match.end).split(' ').first.split('/').first;
+
+      if (str.length < 46) {
+        return 'https://${mySky.skynetClient.portalHost}/hns/';
+      } else {
+        return 'https://${mySky.skynetClient.portalHost}/';
+      }
+    });
+
+    msgText = md.markdownToHtml(
+      msgText,
+      extensionSet: md.ExtensionSet.gitHubWeb,
+    );
+
+    msgText = msgText
+        .replaceAll('>https://${mySky.skynetClient.portalHost}/', '>sia://')
+        .trim();
+
+    try {
+      if (msgText.startsWith('<p>') && msgText.endsWith('</p>')) {
+        msgText = msgText.substring(3, msgText.length - 4);
+      }
+    } catch (e) {}
+
+    final messageField = document.createElement("div");
+
+    messageField.setInnerHtml(
+      msgText,
+      validator: MessageContentNodeValidator(),
+    );
+
+    messageField.querySelectorAll('a').forEach((element) {
+      if (isRunningInIframe) {
+        final href = element.getAttribute('href');
+
+        element.setAttribute('onclick',
+            "window.parent.postMessage({'skappy':true,'action':'launch','name':'${window.name}','data':'${base64Url.encode(utf8.encode(href))}'},'*')");
+        element.setAttribute('href', 'javascript:void(0)');
+        element.title = href;
+      } else {
+        element.setAttribute('target', '_blank');
+      }
+    });
+
+    //innerText = post.content.text;
+    baseElem.append(messageField);
+
+    chatWindowElement.append(baseElem);
+    if (userId != null) loadUserProfileAsync(userId);
+  } catch (e, st) {
+    print(
+        'Exception $e while inserting message in DOM. Post: ${json.encode(post)} stack trace: $st');
+  }
+}
+
+class MessageContentNodeValidator implements NodeValidator {
+  final defaultValidator = NodeValidatorBuilder.common();
+
+  @override
+  bool allowsElement(Element element) {
+    return defaultValidator.allowsElement(element);
   }
 
-  final Element chatWindowElement = UI['content']['chatWindow']['elem'];
-  // TODO Show loading indicator if null
+  @override
+  bool allowsAttribute(element, attributeName, value) {
+/*     print(element.tagName);
+    print(element.className);
+    print(element.nodeName); */
+    if (element.tagName == 'A') {
+      if (attributeName == 'href') {
+        return true;
+      }
+    }
+    /* else if (element.tagName == 'IMG') {
+      if (attributeName == 'src') {
+        if (value.startsWith('https://${mySky.skynetClient.portalHost}/')) {
+          return true;
+        }
+      }
+    } */
 
-  final baseElem = document.createElement("div");
-  if (isDraft) {
-    baseElem.style.opacity = '40%';
+    return defaultValidator.allowsAttribute(element, attributeName, value);
   }
-  baseElem.setAttribute("id", id);
-  baseElem.classes.add("chatEntry");
+}
 
-  final usernameField = document.createElement("span");
-  if (userId == null) {
-    usernameField.innerText = currentServerData?.name;
+class AllowSkylinksUrlPolicy implements UriPolicy {
+  final AnchorElement _hiddenAnchor = AnchorElement();
+  final Location _loc = window.location;
 
-    usernameField.style.color = '#00C65E';
-  } else {
-    usernameField.style.fontStyle = 'italic';
-    usernameField.innerText = 'Loading username...';
-    usernameField.classes.add('user-${userId}');
-    // userIdsToLoad.add(userId);
+  @override
+  bool allowsUri(String uri) {
+    _hiddenAnchor.href = uri;
 
+    if (_hiddenAnchor.hostname == _loc.hostname) return true;
+    // IE leaves an empty hostname for same-origin URIs.
+    return (_hiddenAnchor.hostname == mySky.skynetClient.portalHost) ||
+        (_hiddenAnchor.hostname == '' &&
+            _hiddenAnchor.port == '' &&
+            (_hiddenAnchor.protocol == ':' || _hiddenAnchor.protocol == ''));
   }
-
-  baseElem.append(usernameField);
-
-  if (post.ts != null) {
-    final dateTimeField = document.createElement('span');
-
-    dateTimeField.innerText =
-        ' ${DateFormat.Hm().format(DateTime.fromMillisecondsSinceEpoch(post.ts))}';
-
-    baseElem.append(dateTimeField);
-  }
-
-  final messageField = document.createElement("div");
-  messageField.innerText = post.content.text;
-  baseElem.append(messageField);
-
-  chatWindowElement.append(baseElem);
-  if (userId != null) loadUserProfileAsync(userId);
 }
 
 // TODO Attachments

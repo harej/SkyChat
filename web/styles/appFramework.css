@@ -21,9 +21,7 @@ html, body {
 }
 
 body {
-  border-radius: 5px;
   background-color: rgba(0, 0, 0, 0);
-  backdrop-filter: blur(15px);
   overflow: hidden;
 }
 
@@ -43,6 +41,11 @@ body.maximized {
   width: 20px;
   overflow: hidden;
   padding: 4px;
+}
+
+.loaderContainer.inline {
+  display: inline-block;
+  transform: translateY(7.5px);
 }
 
 .loader {

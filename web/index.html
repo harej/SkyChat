@@ -29,7 +29,7 @@
   <!-- Authentication Modal -->
   <div id="loginModal" class="modal" style="display: block">
     <div class="modal-content">
-      <p>Initializing MySky...</p>
+      <p><div class="loaderContainer inline"><div class="loader"></div></div>  Initializing MySky...</p>
     </div>
 
   </div>
@@ -130,7 +130,11 @@
             </table>
           </form>
           <i class="far fa-bell centerizeHorizontally"></i>-->
-        <i class="fas fa-ellipsis-v centerizeHorizontally"></i>
+          <i class="fas fa-ellipsis-v centerizeHorizontally" onClick="document.querySelector('.channelHeaderMenu').classList.toggle('show');"></i>
+      </div>
+      <div class="channelHeaderMenu centerizeVertically">
+        <a href="#" disabled>Settings</a>
+        <a href="#">Logout</a>
       </div>
     </div>
     <div class="channelContent useScrollBar" onLoad="setInterval(App.UI.content.chatWindow.updateScrollFunc, 500);">
@@ -164,24 +168,43 @@
           </div>-->
       </div>
     </div>
-    <form id="channelInput" style="margin-bottom: 0px;">
-
-      <div style="padding: 0px 16px; display: flex;">
-
-        <div class="inputField" style="padding-right: 10px; flex-grow: 4">
-          <input type="text" id="msgField" autocomplete="off"
-            style=" width: 100%; outline: transparent; border-radius: 1px; padding: 8px 8px; border-width: thin; border-color: #00C65E;"
-            placeholder="You do not have permission to send messages here" disabled>
-
-        </div>
-
-
-        <input class="button-primary float-right" type="submit" value="Send"
-          style="flex-basis: 70px;  margin-left: 18px; background-color: #00C65E; border: none; color: white;">
-
-      </div>
-
+    <form id="channelInput" class="channelInput"><!--onsubmit="App.InvokeSend(this); return false;">-->
+      <table>
+        <tr>
+          <td class="attachBtn">
+            <input id="attachment" type="file" name="attachment" hidden />
+            <label for="attachment"></label>
+            <div class="detachFileBtn disabled">
+              <div class="dot"></div>
+            </div>
+          </td>
+          <!--<td><i class="fas fa-microphone"></i></td>-->
+          <td class="inputField">
+            <div>
+              <textarea name="msg" id="msgField" class="useScrollBar" placeholder="You do not have permission to send messages here" disabled></textarea>
+            </div>
+          </td>
+          <td class="addEmojiBtn" onclick="document.querySelector('.channelEmojiInput').classList.toggle('hide');"></td>
+        </tr>
+      </table>
     </form>
+    <div class="channelEmojiInput useScrollBar clearfix hide">
+      <div class="emojiBtn centerizeVertically" onClick="insertAtCursor(document.querySelector('.channelInput').msg, ' :smile:')"><div class="emoji smile"></div></div>
+      <div class="emojiBtn centerizeVertically" onClick="insertAtCursor(document.querySelector('.channelInput').msg, ' :lol:')"><div class="emoji lol"></div></div>
+      <div class="emojiBtn centerizeVertically" onClick="insertAtCursor(document.querySelector('.channelInput').msg, ' :sad:')"><div class="emoji sad"></div></div>
+      <div class="emojiBtn centerizeVertically" onClick="insertAtCursor(document.querySelector('.channelInput').msg, ' :neutral:')"><div class="emoji neutral"></div></div>
+      <div class="emojiBtn centerizeVertically" onClick="insertAtCursor(document.querySelector('.channelInput').msg, ' :cool:')"><div class="emoji cool"></div></div>
+      <div class="emojiBtn centerizeVertically" onClick="insertAtCursor(document.querySelector('.channelInput').msg, ' :confused:')"><div class="emoji confused"></div></div>
+      <div class="emojiBtn centerizeVertically" onClick="insertAtCursor(document.querySelector('.channelInput').msg, ' :grinning:')"><div class="emoji grinning"></div></div>
+      <div class="emojiBtn centerizeVertically" onClick="insertAtCursor(document.querySelector('.channelInput').msg, ' :grimacing:')"><div class="emoji grimacing"></div></div>
+      <div class="emojiBtn centerizeVertically" onClick="insertAtCursor(document.querySelector('.channelInput').msg, ' :sweat_smile:')"><div class="emoji sweat_smile"></div></div>
+      <div class="emojiBtn centerizeVertically" onClick="insertAtCursor(document.querySelector('.channelInput').msg, ' :sweat:')"><div class="emoji sweat"></div></div>
+      <div class="emojiBtn centerizeVertically" onClick="insertAtCursor(document.querySelector('.channelInput').msg, ' :thinking:')"><div class="emoji thinking"></div></div>
+      <div class="emojiBtn centerizeVertically" onClick="insertAtCursor(document.querySelector('.channelInput').msg, ' :thumbsup:')"><div class="emoji thumbsup"></div></div>
+      <div class="emojiBtn centerizeVertically" onClick="insertAtCursor(document.querySelector('.channelInput').msg, ' :thumbsdown:')"><div class="emoji thumbsdown"></div></div>
+      <div class="emojiBtn centerizeVertically" onClick="insertAtCursor(document.querySelector('.channelInput').msg, ' :ok_hand:')"><div class="emoji ok_hand"></div></div>
+      <div class="emojiBtn centerizeVertically" onClick="insertAtCursor(document.querySelector('.channelInput').msg, ' :unknown:')"><div class="emoji unknown"></div></div>
+    </div>
     <!--    <form class="channelInput" onsubmit="skychatClick('sendMessage'); return false;">
       <table>
         <tr>
@@ -215,7 +238,25 @@
   </aside>
 
   <script src="https://kit.fontawesome.com/2a33003987.js" crossorigin="anonymous"></script>
-
+  <script>
+    function insertAtCursor(myField, myValue) {
+      if (myField.disabled) return;
+      if (document.selection) {
+          myField.focus();
+          sel = document.selection.createRange();
+          sel.text = myValue;
+      }
+      else if (myField.selectionStart || myField.selectionStart == '0') {
+          var startPos = myField.selectionStart;
+          var endPos = myField.selectionEnd;
+          myField.value = myField.value.substring(0, startPos)
+              + myValue
+              + myField.value.substring(endPos, myField.value.length);
+      } else {
+          myField.value += myValue;
+      }
+    }
+  </script>
 </body>
 
 </html>

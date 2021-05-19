@@ -22,10 +22,16 @@
 
 # Features
 * Supports up to 1000 users in single server
-* Clean UI
+* Emojis
+* Clean/Slick UI
 
 
 # Planned features
 * File transfer
-* Emojis
 * Reaction to content (using emojis)
+
+# Thanks <3 
+ * @redsolver#0372 for helping me with skynet and setting things up
+ * @stelballe#2785 all around helped and made a awesome logo :D
+ * @Kaveman#1115 for frontend work :)
+
